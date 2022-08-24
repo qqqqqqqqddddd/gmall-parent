@@ -7,11 +7,10 @@
         <module>common</module>
         <module>model</module>
         <module>service</module>
-        <module>service-gateway</module>
         <module>server-gateway</module>
     </modules>
 
-    <!--引入spring boot 父工程-->
+    <!--引入spring boot 父工程111-->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
