@@ -36,6 +36,8 @@ public class BaseCategory2ServiceImpl extends ServiceImpl<BaseCategory2Mapper, B
         List<BaseCategory2> list = baseCategory2Mapper.selectList(wrapper);
         return list;
     }
+
+
 }
 
 
