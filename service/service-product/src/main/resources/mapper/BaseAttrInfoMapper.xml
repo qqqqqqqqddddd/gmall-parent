@@ -35,6 +35,17 @@
         SELECT bai.*,bav.id,bav.value_name,bav.attr_id FROM base_attr_info bai
                                     LEFT JOIN base_attr_value bav ON
             bai.id =bav.attr_id
+<!--        <where>-->
+<!--            <if test="c1Id != 0">-->
+<!--                (bai.category_id=#{c1Id} AND  bai.category_level=1)-->
+<!--            </if>-->
+<!--            <if test="c2Id != 0">-->
+<!--               or (bai.category_id=#{c2Id} AND  bai.category_level=2)-->
+<!--            </if>-->
+<!--            <if test="c3Id != 0">-->
+<!--               or (bai.category_id=#{c3Id} AND  bai.category_level=3)-->
+<!--            </if>-->
+<!--        </where>-->
         WHERE  (bai.category_id=#{c1Id} AND  bai.category_level=1)
            OR (bai.category_id=#{c2Id} AND  bai.category_level=2)
            OR (bai.category_id=#{c3Id} AND  bai.category_level=3)

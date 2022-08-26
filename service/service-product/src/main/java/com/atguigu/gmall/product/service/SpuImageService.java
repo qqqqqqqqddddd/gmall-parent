@@ -2,6 +2,8 @@ package com.atguigu.gmall.product.service;
 
 
 import com.atguigu.gmall.model.product.SpuImage;
+import com.atguigu.gmall.model.product.SpuInfo;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

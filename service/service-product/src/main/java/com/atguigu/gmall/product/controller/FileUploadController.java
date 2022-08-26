@@ -1,6 +1,9 @@
 package com.atguigu.gmall.product.controller;
 
 import com.atguigu.gmall.common.result.Result;
+import com.atguigu.gmall.product.service.FileUploadService;
+import com.sun.xml.internal.bind.v2.TODO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,15 +18,20 @@ import java.util.Map;
 @RequestMapping("/admin/product")
 public class FileUploadController {
 
+    @Autowired
+    FileUploadService fileUploadService;
+
     /**
      * @RequestParam("file")MultipartFile file 接文件
      * @param file
      * @return
      */
     @PostMapping("/fileUpload")
-    public Result fileUpload(@RequestPart("file")MultipartFile file){
+    public Result fileUpload(@RequestPart("file")MultipartFile file) throws Exception {
+        //收到前端的文件流,上传到Minio返回存储地址
+        String url=fileUploadService.upload(file);
 
-        return  Result.ok();
+        return  Result.ok(url);
     }
 
     @PostMapping("/reg")

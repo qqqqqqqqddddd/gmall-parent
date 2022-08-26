@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 后台品牌管理
  */
@@ -78,4 +80,17 @@ public class BaseTrademarkController {
         baseTrademarkService.removeById(tid);
         return Result.ok();
     }
+
+
+    /*
+     * @description:获取所有品牌
+     * @author: niuzp
+     * @date: 2022/8/26 21:24
+     **/
+    @GetMapping("/baseTrademark/getTrademarkList")
+    public Result getTrademarkList() {
+        List<BaseTrademark> list = baseTrademarkService.list();
+        return Result.ok(list);
+    }
+
 }
