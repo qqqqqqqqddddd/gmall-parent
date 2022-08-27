@@ -2,6 +2,7 @@ package com.atguigu.gmall.product.mapper;
 
 
 import com.atguigu.gmall.model.product.BaseCategory3;
+import com.atguigu.gmall.model.to.CategoryViewTo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -13,7 +14,12 @@ import org.apache.ibatis.annotations.Mapper;
 */
 @Mapper
 public interface BaseCategory3Mapper extends BaseMapper<BaseCategory3> {
-
+    /*
+     * @description:根据三级分类的id查询二级,一级父类的信息
+     * @author: niuzp
+     * @date: 2022/8/27 16:04
+     **/
+    CategoryViewTo getCategoryView(Long category3Id);
 }
 
 
