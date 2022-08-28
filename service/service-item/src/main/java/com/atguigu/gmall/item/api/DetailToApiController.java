@@ -23,7 +23,7 @@ public class DetailToApiController {
     @Autowired
     SkuDetailService skuDetailService;
 
-    @ApiOperation("三级分类树形结构查询")
+
     @GetMapping("/skudetail/{skuId}")
     public Result<SkuDetailTo> getSkuDetail(@PathVariable("skuId") Long skuId){
 

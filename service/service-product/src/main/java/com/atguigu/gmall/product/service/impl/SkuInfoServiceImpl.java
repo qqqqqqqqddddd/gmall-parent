@@ -146,6 +146,17 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoMapper, SkuInfo>
         List<SkuImage> imageList= skuImageService.getSkuImage(skuId);
         return imageList;
     }
+
+    /**
+     * 优化 - 查询skuPrice
+     * @param skuId
+     * @return
+     */
+    @Override
+    public BigDecimal getDetailSkuPrice(Long skuId) {
+        BigDecimal price = get1010Price(skuId);
+        return price;
+    }
 }
 
 
