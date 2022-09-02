@@ -1,7 +1,6 @@
-package com.atguigu.gmall.common.constant;
+package com.atguigu.starter.cache.constant;
 
 public class SysRedisConst {
-
     public static final String NULL_VAL = "x";
     public static final String LOCK_SKU_DETAIL = "lock:sku:detail:";
     public static final Long NULL_VAL_TTL = 60*30L;
@@ -11,5 +10,5 @@ public class SysRedisConst {
 
     public static final String BLOOM_SKUID = "bloom:skuid";
     public static final String LOCK_PREFIX = "lock:";
-    public static final String CACHE_CATEGORYS = "categorys";
+
 }

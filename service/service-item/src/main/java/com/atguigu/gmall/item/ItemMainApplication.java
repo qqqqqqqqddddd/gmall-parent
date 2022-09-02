@@ -5,9 +5,10 @@ import com.atguigu.gmall.common.config.RedissonAutoConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.cloud.client.SpringCloudApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 
-@Import(RedissonAutoConfiguration.class)
+
 @EnableThreadPool
 @EnableFeignClients
 @SpringCloudApplication

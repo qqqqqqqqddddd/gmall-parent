@@ -1,9 +1,10 @@
 package com.atguigu.gmall.item.service.impl;
 
+
 import com.atguigu.gmall.common.constant.SysRedisConst;
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.common.util.Jsons;
-import com.atguigu.gmall.item.cache.CacheOpsService;
+import com.atguigu.gmall.common.util.Jsons;
 import com.atguigu.gmall.item.feign.SkuDetailFeignClient;
 import com.atguigu.gmall.item.service.SkuDetailService;
 import com.atguigu.gmall.model.product.SkuImage;
@@ -11,6 +12,7 @@ import com.atguigu.gmall.model.product.SkuInfo;
 import com.atguigu.gmall.model.product.SpuSaleAttr;
 import com.atguigu.gmall.model.to.CategoryViewTo;
 import com.atguigu.gmall.model.to.SkuDetailTo;
+import com.atguigu.starter.cache.annotation.GmallCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -24,8 +26,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
-
 @Slf4j
 @Service
 public class SkuDetailServiceImpl implements SkuDetailService {
@@ -36,8 +36,6 @@ public class SkuDetailServiceImpl implements SkuDetailService {
      @Autowired
     ThreadPoolExecutor executor;
 
-     @Autowired
-    CacheOpsService cacheOpsService;
 
     ConcurrentHashMap<Long,ReentrantLock> lockPool =  new ConcurrentHashMap(); //锁池中
 
@@ -148,7 +146,7 @@ public class SkuDetailServiceImpl implements SkuDetailService {
     //@SneakyThrows
     public SkuDetailTo getSkuDetailxxxx(Long skuId) throws InterruptedException {
            //往锁池中放入每个商品的锁
-         lockPool.put(skuId,new ReentrantLock());
+       lockPool.put(skuId,new ReentrantLock());
 
         String jsonStr = redisTemplate.opsForValue().get("sku:info:"+skuId);
         if ("x".equals(jsonStr)){
@@ -184,43 +182,15 @@ public class SkuDetailServiceImpl implements SkuDetailService {
         return skuDetailTo;
     }
 
+    @GmallCache(
+            cacheKey = SysRedisConst.SKU_INFO_PREFIX+"#{#params[0]}",
+            bloomName = SysRedisConst.BLOOM_SKUID,
+            bloomValue = "#{#params[0]}",
+            lockName = SysRedisConst.LOCK_SKU_DETAIL+"#{#params[0]}"
+    )
     @Override
     public SkuDetailTo getSkuDetail(Long skuId) {
-        String cachekey= SysRedisConst.SKU_INFO_PREFIX+skuId;
-        //1.先查缓存
-        SkuDetailTo cacheData = cacheOpsService.getCacheData(cachekey, SkuDetailTo.class);
-        //判断
-        if (cacheData == null){
-            //缓存没有
-           //先问布隆
-            boolean contains = cacheOpsService.bloomContains(skuId);
-            if (! contains){
-                //布隆过滤器说没有,一定没有
-                log.info("[{}]商品 - 布隆判定没有，检测到隐藏的攻击风险....",skuId);
-                return  null;
-            }
-        //布隆说有,不一定有,查询回源
-            boolean lock = cacheOpsService.tryLock(skuId);
-            if (lock){
-                //抢到锁,查询
-                log.info("[{}]商品 缓存未命中，布隆说有，准备回源.....",skuId);
-                SkuDetailTo fromRpc = getSkuDetailFromRpc(skuId);
-                //数据放到缓存中
-                cacheOpsService.saveData(cachekey,fromRpc);
-                //解锁
-                cacheOpsService.unlock(skuId);
-                return fromRpc;
-            }
-           //没获取到锁
-           try {Thread.sleep(1000);
-               return cacheOpsService.getCacheData(cachekey,SkuDetailTo.class);
-           } catch (InterruptedException e) {
-
-           }
-
-
-        }
-        //有则查询返回
-        return cacheData;
+        SkuDetailTo fromRpc = getSkuDetailFromRpc(skuId);
+        return fromRpc;
     }
 }

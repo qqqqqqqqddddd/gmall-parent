@@ -7,10 +7,12 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.cloud.client.SpringCloudApplication;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+@EnableScheduling
 @EnableThreadPool
 @EnableTransactionManagement
-@Import({Swagger2Config.class, RedissonAutoConfiguration.class})
+@Import({Swagger2Config.class})
 @MapperScan("com.atguigu.gmall.product.mapper")
 @SpringCloudApplication
 public class ProductMainApplication {

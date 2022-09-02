@@ -1,7 +1,11 @@
 package com.atguigu.gmall.product.service.impl;
 
+
+
+import com.atguigu.gmall.common.constant.SysRedisConst;
 import com.atguigu.gmall.model.product.BaseCategory2;
 import com.atguigu.gmall.model.to.CategoryTreeTo;
+import com.atguigu.starter.cache.annotation.GmallCache;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.atguigu.gmall.product.service.BaseCategory2Service;
@@ -38,6 +42,7 @@ public class BaseCategory2ServiceImpl extends ServiceImpl<BaseCategory2Mapper, B
         return list;
     }
     //查询返回所有分类已经他的子分类
+    @GmallCache(cacheKey = SysRedisConst.CACHE_CATEGORYS)
     @Override
     public List<CategoryTreeTo> getAllCategoryWithTree() {
        List<CategoryTreeTo> categoryTreeTos= baseCategory2Mapper.getAllCategoryWithTree();

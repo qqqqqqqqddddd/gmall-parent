@@ -1,9 +1,10 @@
-package com.atguigu.gmall.item.cache.impl;
+package com.atguigu.starter.cache.service.impl;
 
-import com.atguigu.gmall.common.constant.SysRedisConst;
-import com.atguigu.gmall.common.util.Jsons;
-import com.atguigu.gmall.item.cache.CacheOpsService;
-import com.google.common.hash.BloomFilter;
+
+import com.atguigu.starter.cache.constant.SysRedisConst;
+import com.atguigu.starter.cache.service.CacheOpsService;
+import com.atguigu.starter.cache.utils.Jsons;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -18,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class CacheOpsServiceImpl implements CacheOpsService {
+
 
 
     @Autowired
@@ -46,10 +49,33 @@ public class CacheOpsServiceImpl implements CacheOpsService {
     }
 
     @Override
-    public boolean bloomContains(Long skuId) {
+    public Object getCacheData(String cacheKey, Type type) {
+        String jsonStr = redisTemplate.opsForValue().get(cacheKey);
+        //引入null值缓存机制。
+        if(SysRedisConst.NULL_VAL.equals(jsonStr)){
+            return null;
+        }
+
+        //逆转json为Type类型的复杂对象
+        Object obj = Jsons.toObj(jsonStr, new TypeReference<Object>() {
+            @Override
+            public Type getType() {
+                return type; //这个是方法的带泛型的返回值类型
+            }
+        });
+        return obj;
+    }
+
+    @Override
+    public boolean bloomContains(Object skuId) {
         RBloomFilter<Object> filter = redissonClient.getBloomFilter(SysRedisConst.BLOOM_SKUID);
         return filter.contains(skuId);
-//        return  true;
+    }
+
+    @Override
+    public boolean bloomContains(String bloomName, Object bVal) {
+        RBloomFilter<Object> filter = redissonClient.getBloomFilter(bloomName);
+        return filter.contains(bVal);
     }
 
     @Override
@@ -60,6 +86,12 @@ public class CacheOpsServiceImpl implements CacheOpsService {
         //2、尝试加锁
         boolean tryLock = lock.tryLock();
         return tryLock;
+    }
+
+    @Override
+    public boolean tryLock(String lockName) {
+        RLock rLock = redissonClient.getLock(lockName);
+        return rLock.tryLock();
     }
 
     @Override
@@ -86,5 +118,11 @@ public class CacheOpsServiceImpl implements CacheOpsService {
 
         //解掉这把锁
         lock.unlock();
+    }
+
+    @Override
+    public void unlock(String lockName) {
+        RLock lock = redissonClient.getLock(lockName);
+        lock.unlock(); //redisson已经防止了删别人锁
     }
 }
