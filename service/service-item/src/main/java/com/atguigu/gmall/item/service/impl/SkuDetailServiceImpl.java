@@ -1,7 +1,9 @@
 package com.atguigu.gmall.item.service.impl;
 
+import com.atguigu.gmall.common.constant.SysRedisConst;
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.common.util.Jsons;
+import com.atguigu.gmall.item.cache.CacheOpsService;
 import com.atguigu.gmall.item.feign.SkuDetailFeignClient;
 import com.atguigu.gmall.item.service.SkuDetailService;
 import com.atguigu.gmall.model.product.SkuImage;
@@ -9,17 +11,22 @@ import com.atguigu.gmall.model.product.SkuInfo;
 import com.atguigu.gmall.model.product.SpuSaleAttr;
 import com.atguigu.gmall.model.to.CategoryViewTo;
 import com.atguigu.gmall.model.to.SkuDetailTo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
+import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
+
+@Slf4j
 @Service
 public class SkuDetailServiceImpl implements SkuDetailService {
 
@@ -28,6 +35,13 @@ public class SkuDetailServiceImpl implements SkuDetailService {
 
      @Autowired
     ThreadPoolExecutor executor;
+
+     @Autowired
+    CacheOpsService cacheOpsService;
+
+    ConcurrentHashMap<Long,ReentrantLock> lockPool =  new ConcurrentHashMap(); //锁池中
+
+    ReentrantLock lock =  new ReentrantLock(); //锁的粒度太大把无关的都锁住了
 
      //本地缓存: 缺点: 容量问题, 同步问题
     // private Map<Long,SkuDetailTo> skuCache = new ConcurrentHashMap<>();
@@ -60,9 +74,11 @@ public class SkuDetailServiceImpl implements SkuDetailService {
 
         //2.查询图片信息
         CompletableFuture<Void> imageFuture = skuInfoFuture.thenAcceptAsync((skuInfo -> {
+          if(skuInfo != null){
             Result<List<SkuImage>> skuImages = skuDetailFeignClient.getSkuImages(skuId);
             List<SkuImage> images = skuImages.getData();
             skuInfo.setSkuImageList(images);
+          }
         }), executor);
 
 
@@ -75,24 +91,30 @@ public class SkuDetailServiceImpl implements SkuDetailService {
 
         //查询销售属性名和值
         CompletableFuture<Void> spuSaleAttrFuture = skuInfoFuture.thenAcceptAsync((skuInfo -> {
+          if(skuInfo != null){
             Result<List<SpuSaleAttr>> skuSaleattrvalues = skuDetailFeignClient.getSkuSaleattrvalues(skuId, skuInfo.getSpuId());
             List<SpuSaleAttr> spuSaleAttrs = skuSaleattrvalues.getData();
             skuDetailTo.setSpuSaleAttrList(spuSaleAttrs);
+                    }
         }), executor);
 
 
         //查询所有的销售属性组合
         CompletableFuture<Void> skuvalueJsonFuture = skuInfoFuture.thenAcceptAsync((skuInfo -> {
+           if(skuInfo != null){
             Result<String> skuvalueJson = skuDetailFeignClient.getSkuvalueJson(skuInfo.getSpuId());
             String svalueJson = skuvalueJson.getData();
             skuDetailTo.setValuesSkuJson(svalueJson);
+            }
         }), executor);
 
         //查询分类
         CompletableFuture<Void> categoryViewFuture = skuInfoFuture.thenAcceptAsync((skuInfo -> {
-            Result<CategoryViewTo> categoryView = skuDetailFeignClient.getCategoryView(skuInfo.getCategory3Id());
-            CategoryViewTo categoryViewTo = categoryView.getData();
-            skuDetailTo.setCategoryView(categoryViewTo);
+           if(skuInfo != null) {
+               Result<CategoryViewTo> categoryView = skuDetailFeignClient.getCategoryView(skuInfo.getCategory3Id());
+               CategoryViewTo categoryViewTo = categoryView.getData();
+               skuDetailTo.setCategoryView(categoryViewTo);
+           }
         }), executor);
 
         CompletableFuture
@@ -123,8 +145,10 @@ public class SkuDetailServiceImpl implements SkuDetailService {
 //    }
 
     //进行分布式缓存优化
-    @Override
-    public SkuDetailTo getSkuDetail(Long skuId) {
+    //@SneakyThrows
+    public SkuDetailTo getSkuDetailxxxx(Long skuId) throws InterruptedException {
+           //往锁池中放入每个商品的锁
+         lockPool.put(skuId,new ReentrantLock());
 
         String jsonStr = redisTemplate.opsForValue().get("sku:info:"+skuId);
         if ("x".equals(jsonStr)){
@@ -132,8 +156,20 @@ public class SkuDetailServiceImpl implements SkuDetailService {
             return  null;
         }
         if (StringUtils.isEmpty(jsonStr)){
+
+            SkuDetailTo fromRpc = null;
+            //先判断锁池中是否有锁 ,有就用没有就放一把锁
+            ReentrantLock lock = lockPool.putIfAbsent(skuId, new ReentrantLock());
+//            ReentrantLock reentrantLock = lockPool.get(skuId);
+            boolean b = this.lock.tryLock(); //瞬发锁,等不到直接走
+
+             if (b){
+                 fromRpc = getSkuDetailFromRpc(skuId);
+             }else {
+                 Thread.sleep(1000);
+             }
             //缓存中没有 回源 放入缓存
-            SkuDetailTo fromRpc = getSkuDetailFromRpc(skuId);
+
             String cacheJson="x";
             if (fromRpc!=null){
                 cacheJson = Jsons.toStr(fromRpc);
@@ -146,5 +182,45 @@ public class SkuDetailServiceImpl implements SkuDetailService {
         //缓存中有数据
         SkuDetailTo skuDetailTo = Jsons.toObj(jsonStr, SkuDetailTo.class);
         return skuDetailTo;
+    }
+
+    @Override
+    public SkuDetailTo getSkuDetail(Long skuId) {
+        String cachekey= SysRedisConst.SKU_INFO_PREFIX+skuId;
+        //1.先查缓存
+        SkuDetailTo cacheData = cacheOpsService.getCacheData(cachekey, SkuDetailTo.class);
+        //判断
+        if (cacheData == null){
+            //缓存没有
+           //先问布隆
+            boolean contains = cacheOpsService.bloomContains(skuId);
+            if (! contains){
+                //布隆过滤器说没有,一定没有
+                log.info("[{}]商品 - 布隆判定没有，检测到隐藏的攻击风险....",skuId);
+                return  null;
+            }
+        //布隆说有,不一定有,查询回源
+            boolean lock = cacheOpsService.tryLock(skuId);
+            if (lock){
+                //抢到锁,查询
+                log.info("[{}]商品 缓存未命中，布隆说有，准备回源.....",skuId);
+                SkuDetailTo fromRpc = getSkuDetailFromRpc(skuId);
+                //数据放到缓存中
+                cacheOpsService.saveData(cachekey,fromRpc);
+                //解锁
+                cacheOpsService.unlock(skuId);
+                return fromRpc;
+            }
+           //没获取到锁
+           try {Thread.sleep(1000);
+               return cacheOpsService.getCacheData(cachekey,SkuDetailTo.class);
+           } catch (InterruptedException e) {
+
+           }
+
+
+        }
+        //有则查询返回
+        return cacheData;
     }
 }

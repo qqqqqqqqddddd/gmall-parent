@@ -29,16 +29,23 @@ public class ItemController {
 //      SkuDetailTo skuDetailTo = skuFeignClient.getSkuDetail(skuId);
         Result<SkuDetailTo> result = skuFeignClient.getSkuDetail(skuId);
 
-        //获取商品情:sku的全部属性
-        if (result.isOk()){
+        if(result.isOk()) {
             SkuDetailTo skuDetailTo = result.getData();
+
+            if (skuDetailTo == null || skuDetailTo.getSkuInfo() == null) {
+                //说明远程没有查到商品
+                return "item/404";
+            }
+
+        //获取商品情:sku的全部属性
+
             model.addAttribute("categoryView",skuDetailTo.getCategoryView());
             model.addAttribute("skuInfo",skuDetailTo.getSkuInfo());
             model.addAttribute("price",skuDetailTo.getPrice());
             model.addAttribute("spuSaleAttrList",skuDetailTo.getSpuSaleAttrList());
             model.addAttribute("valuesSkuJson",skuDetailTo.getValuesSkuJson());
-        }
 
+        }
         return  "item/index";
     }
 
