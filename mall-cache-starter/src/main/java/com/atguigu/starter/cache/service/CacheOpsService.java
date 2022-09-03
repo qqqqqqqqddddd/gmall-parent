@@ -1,6 +1,7 @@
 package com.atguigu.starter.cache.service;
 
 import java.lang.reflect.Type;
+import java.util.concurrent.TimeUnit;
 
 public interface CacheOpsService {
 
@@ -61,6 +62,8 @@ public interface CacheOpsService {
      */
     void saveData(String cacheKey, Object fromRpc);
 
+    void saveData(String cacheKey, Object fromRpc, Long dataTtl);
+
     /**
      * 解锁
      * @param skuId
@@ -73,4 +76,10 @@ public interface CacheOpsService {
      * @param lockName
      */
     void unlock(String lockName);
+
+    /**
+     * 延迟双删
+     * @param cacheKey
+     */
+    void  delay2Delete(String cacheKey);
 }
