@@ -1,5 +1,10 @@
 package com.atguigu.gmall.product.service.impl;
+import com.atguigu.gmall.feign.search.SearchFeignClient;
 
+import java.util.Date;
+
+import com.atguigu.gmall.model.list.Goods;
+import com.atguigu.gmall.model.list.SearchAttr;
 import com.atguigu.gmall.model.product.*;
 import com.atguigu.gmall.model.to.CategoryViewTo;
 import com.atguigu.gmall.model.to.SkuDetailTo;
@@ -41,6 +46,12 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoMapper, SkuInfo>
     @Autowired
     SpuSaleAttrService spuSaleAttrService;
 
+    @Autowired
+    BaseTrademarkService baseTrademarkService;
+
+    @Autowired
+    SearchFeignClient searchFeignClient;
+
     @Transactional
     @Override
     public void saveSkuInfo(SkuInfo skuInfo) {
@@ -77,11 +88,16 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoMapper, SkuInfo>
     public void cancelSale(Long skuId) {
         //is_sale : 1-上架 ,0-下架
         skuInfoMapper.updateIsSale(skuId,0);
+        searchFeignClient.deleteGoods(skuId);
     }
     //sku上架
     @Override
     public void onSale(Long skuId) {
         skuInfoMapper.updateIsSale(skuId,1);
+        //加入到es索引中
+        Goods  goods= getGoodsBySkuId(skuId);
+        searchFeignClient.saveGoods(goods);
+
     }
 
     //api查询前台的商品的sku
@@ -167,6 +183,39 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoMapper, SkuInfo>
         //分页查询。分批次查询。
 
         return skuInfoMapper.getAllSkuId();
+    }
+
+    @Override
+    public Goods getGoodsBySkuId(Long skuId) {
+
+        SkuInfo skuInfo = skuInfoMapper.selectById(skuId);
+
+        Goods goods = new Goods();
+        goods.setId(skuId);
+        goods.setDefaultImg(skuInfo.getSkuDefaultImg());
+        goods.setTitle(skuInfo.getSkuName());
+        goods.setPrice(skuInfo.getPrice().doubleValue());
+        goods.setCreateTime(new Date());
+        goods.setTmId(skuInfo.getTmId());
+
+        BaseTrademark trademark = baseTrademarkService.getById(skuInfo.getTmId());
+
+        goods.setTmName(trademark.getTmName());
+        goods.setTmLogoUrl(trademark.getLogoUrl());
+
+        CategoryViewTo categoryView = baseCategory3Mapper.getCategoryView(skuInfo.getCategory3Id());
+        goods.setCategory1Id(categoryView.getCategory1Id());
+        goods.setCategory1Name(categoryView.getCategory1Name());
+        goods.setCategory2Id(categoryView.getCategory2Id());
+        goods.setCategory2Name(categoryView.getCategory2Name());
+        goods.setCategory3Id(categoryView.getCategory3Id());
+        goods.setCategory3Name(categoryView.getCategory3Name());
+        goods.setHotScore(0L);  //TODO 热度
+
+        List<SearchAttr> attrs = skuAttrValueService.getSkuAttrNameAndValue(skuId);
+        goods.setAttrs(attrs);
+
+        return  goods;
     }
 }
 

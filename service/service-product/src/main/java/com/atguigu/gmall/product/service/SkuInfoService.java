@@ -1,6 +1,7 @@
 package com.atguigu.gmall.product.service;
 
 
+import com.atguigu.gmall.model.list.Goods;
 import com.atguigu.gmall.model.product.SkuImage;
 import com.atguigu.gmall.model.product.SkuInfo;
 import com.atguigu.gmall.model.to.SkuDetailTo;
@@ -33,4 +34,7 @@ public interface SkuInfoService extends IService<SkuInfo> {
     BigDecimal getDetailSkuPrice(Long skuId);
 
     List<Long> findAllSkuId();
+
+
+    Goods getGoodsBySkuId(Long skuId);
 }

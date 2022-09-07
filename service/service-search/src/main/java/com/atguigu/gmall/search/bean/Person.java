@@ -18,7 +18,7 @@ public class Person {
     private String lastName;
     @Field(value = "age")
     private  Integer age;
-    @Field(value = "address")
+    @Field(value = "address",type = FieldType.Text,analyzer = "ik_smart")
     private  String address;
 
 

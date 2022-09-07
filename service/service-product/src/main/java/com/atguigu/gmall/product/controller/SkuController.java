@@ -65,4 +65,5 @@ public class SkuController {
         skuInfoService.onSale(skuId);
         return  Result.ok();
     }
+
 }
