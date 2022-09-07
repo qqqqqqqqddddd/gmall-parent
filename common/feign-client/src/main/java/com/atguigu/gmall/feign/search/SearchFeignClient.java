@@ -36,4 +36,13 @@ public interface SearchFeignClient {
     @PostMapping("/goods/search")
     Result<SearchResponseVo>  search(@RequestBody SearchParamVo paramVo);
 
+
+    /**
+     * 商品的热度分服务
+     * @param skuId
+     * @return
+     */
+    @GetMapping("/goods/hotscore/{skuId}")
+    Result increHotScore(@PathVariable("skuId") Long skuId,
+                         @RequestParam("score") Long score);
 }

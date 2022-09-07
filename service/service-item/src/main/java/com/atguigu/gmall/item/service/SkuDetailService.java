@@ -5,4 +5,6 @@ import com.atguigu.gmall.model.to.SkuDetailTo;
 public interface SkuDetailService {
 
     SkuDetailTo getSkuDetail(Long skuId);
+
+    void updateScore(Long skuId);
 }

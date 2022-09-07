@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
     <artifactId>service-product</artifactId>
+    <description>{商品详细信息的管理模块}</description>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

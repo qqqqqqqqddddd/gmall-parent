@@ -31,12 +31,12 @@ public class BaseAttrController {
       * @date: 2022/8/25 19:51
       **/
     @GetMapping("/attrInfoList/{c1Id}/{c2Id}/{c3Id}")
-     public Result  getAttrInfoList(@PathVariable("c1Id") long c1Id,
-                                    @PathVariable("c2Id") long c2Id,
-                                    @PathVariable("c3Id") long c3Id){
+     public Result  getAttrInfoList(@PathVariable("c1Id") Long c1Id,
+                                    @PathVariable("c2Id") Long c2Id,
+                                    @PathVariable("c3Id") Long c3Id){
 
        List<BaseAttrInfo> list= baseAttrInfoService.getAttrInfoAndValueByCategoryId(c1Id,c2Id,c3Id);
-          return Result.ok(list);
+       return Result.ok(list);
      }
 
 

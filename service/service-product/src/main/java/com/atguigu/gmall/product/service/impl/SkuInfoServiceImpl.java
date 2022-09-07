@@ -77,7 +77,7 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoMapper, SkuInfo>
         //销售属性保存到sku_sale_attr_value
         List<SkuSaleAttrValue> skuSaleAttrValueList = skuInfo.getSkuSaleAttrValueList();
         for (SkuSaleAttrValue skuSaleAttrValue : skuSaleAttrValueList) {
-            skuSaleAttrValue.setSaleAttrValueId(skuId);
+            skuSaleAttrValue.setSkuId(skuId);
             skuSaleAttrValue.setSpuId(skuInfo.getSpuId());
         }
         skuSaleAttrValueService.saveBatch(skuSaleAttrValueList);
