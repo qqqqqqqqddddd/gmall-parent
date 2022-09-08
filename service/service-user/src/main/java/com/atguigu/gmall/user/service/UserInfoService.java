@@ -2,6 +2,7 @@ package com.atguigu.gmall.user.service;
 
 
 import com.atguigu.gmall.model.user.UserInfo;
+import com.atguigu.gmall.model.vo.user.LoginSuccessVo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -11,4 +12,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface UserInfoService extends IService<UserInfo> {
 
+    LoginSuccessVo login(UserInfo info);
+
+    void logout(String token);
 }
