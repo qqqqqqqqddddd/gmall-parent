@@ -90,7 +90,7 @@ public class GlobalAuthFilter implements GlobalFilter {
                 //判断用户信息是否正确
                 if (info != null) {
                     //redis中有用户的信息
-                    ServerWebExchange webExchange = userIdTransport(info, exchange);
+                    ServerWebExchange webExchange = userIdOrTempIdTransport(info, exchange);
                     return chain.filter(webExchange);
                 } else {
                     //跳到登录页
@@ -103,15 +103,13 @@ public class GlobalAuthFilter implements GlobalFilter {
             //透传用户id
             String tokenValue = getTokenValue(exchange);
             UserInfo info = getTokenUserInfo(tokenValue);
-            if (info != null) {
-                exchange = userIdTransport(info, exchange);
-            } else {
-                if (!StringUtils.isEmpty(tokenValue)) {
-                    //带了token但是没有用户的信息
-                    //说明是个伪令牌
-                    return redirectToCustomPage(authUrlProperties.getLoginPage() + "?originUrl=" + uri, exchange);
-                }
+            if (!StringUtils.isEmpty(tokenValue) && info == null) {
+                //带了token但是没有用户的信息
+                //说明是个伪令牌
+                return redirectToCustomPage(authUrlProperties.getLoginPage() + "?originUrl=" + uri, exchange);
             }
+
+             exchange = userIdOrTempIdTransport(info, exchange);
 
         return chain.filter(exchange);
 
@@ -121,7 +119,6 @@ public class GlobalAuthFilter implements GlobalFilter {
 //                .doFinally((signalType)->{
 //                    log.info("{} 请求结束",path);
 //                });
-
  }
 
 
@@ -147,31 +144,53 @@ public class GlobalAuthFilter implements GlobalFilter {
 
     /**
      * 用户id透传
+     * 透传一个临时id
      * @param info
      * @param exchange
      * @return
      */
-    private ServerWebExchange userIdTransport(UserInfo info, ServerWebExchange exchange) {
-         if (info != null){
-             //请求一旦发过来, 只读
-             ServerHttpRequest request = exchange.getRequest();
+    private ServerWebExchange userIdOrTempIdTransport(UserInfo info, ServerWebExchange exchange) {
+        //请求一旦发过来, 只读
+        ServerHttpRequest request = exchange.getRequest();
+        ServerHttpRequest.Builder newReqBuilder = exchange.getRequest().mutate();
 
-             //封装一个新的请求
-             ServerHttpRequest newReq = exchange.getRequest()
-                     .mutate()
-                     .header(SysRedisConst.USERID_HEADER,info.getId().toString())
-                     .build();
+        //用户登录了
+        if (info != null){
+            newReqBuilder.header(SysRedisConst.USERID_HEADER,info.getId().toString());
+        }
+        //用户没有登录
+        //获取前端带来的临时id
+         String userTempId = getUserTempId(exchange);
+        newReqBuilder.header(SysRedisConst.USERTEMPID_HEADER,userTempId);
 
              //放行时传新的exchange
              ServerWebExchange webExchange = exchange
                      .mutate()
-                     .request(newReq)
+                     .request(newReqBuilder.build())
                      .response(exchange.getResponse())
                      .build();
-
              return webExchange;
-         }
-        return  exchange;
+    }
+
+    /**
+     * 获取临时id
+     * @param exchange
+     * @return
+     */
+    private String getUserTempId(ServerWebExchange exchange) {
+
+        ServerHttpRequest request = exchange.getRequest();
+        String userTempId = request.getHeaders().getFirst("userTempId");
+
+        if (StringUtils.isEmpty(userTempId)){
+            HttpCookie httpCookie = request.getCookies().getFirst("userTempId");
+            if (httpCookie != null){
+                userTempId = httpCookie.getValue();
+            }
+
+        }
+        return userTempId;
+
     }
 
     /**
