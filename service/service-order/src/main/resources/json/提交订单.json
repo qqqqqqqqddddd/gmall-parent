@@ -1,0 +1,33 @@
+{
+  "consignee": "admin",
+  "consigneeTel": "123456789",
+  "deliveryAddress": "北京市昌平区北七家",
+  "paymentWay": "ONLINE",
+  "orderComment": "",
+  "orderDetailList": [
+    {
+      "skuId": 56,
+      "imgUrl": "http://192.168.200.100:9000/gmall/2022-09-08/4bb152692f454f65a27f806464ea12ba_ipone13-2.png",
+      "skuName": "Apple iPhone 13 ",
+      "orderPrice": 6000,
+      "skuNum": 5,
+      "hasStock": "0"
+    },
+    {
+      "skuId": 57,
+      "imgUrl": "http://192.168.200.100:9000/gmall/2022-09-07/b791c8b43fa54f69bc5430c1ff28249b_2.png",
+      "skuName": "联想拯救者Y70 5G电竞游戏手机",
+      "orderPrice": 3000,
+      "skuNum": 1,
+      "hasStock": "0"
+    },
+    {
+      "skuId": 44,
+      "imgUrl": "http://39.99.159.121:9000/gmall/16230513636548bd01a398e614d2bab5fd3366883b1b7.png",
+      "skuName": "小米 CC9 PLUS 手机 美颜自拍 游戏手机 仙女渐变色(美图定制版) 4G全网通 6GB+128GB",
+      "orderPrice": 2200,
+      "skuNum": 2,
+      "hasStock": "0"
+    }
+  ]
+}

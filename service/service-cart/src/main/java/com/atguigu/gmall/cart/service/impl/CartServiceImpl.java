@@ -138,7 +138,7 @@ public class CartServiceImpl  implements CartService {
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         executor.submit(()->{
             RequestContextHolder.setRequestAttributes(requestAttributes);
-            updateCartAllItemsPrice(cartKey,infos);
+            updateCartAllItemsPrice(cartKey);
             //移除数据
             RequestContextHolder.resetRequestAttributes();
         });
@@ -148,22 +148,34 @@ public class CartServiceImpl  implements CartService {
     /**
      * 查询商品价格,同步
      * @param cartKey
-     * @param infos
+     * @param
      */
     @Override
-    public void updateCartAllItemsPrice(String cartKey, List<CartInfo> infos) {
-        //1、拿到购物车
-        BoundHashOperations<String, String, String> cartOps = redisTemplate.boundHashOps(cartKey);
-        infos.stream()
-                .forEach(cartInfo -> {
-                    //1.查出最新价格
-                    Result<BigDecimal> skuPrice = skuDetailFeignClient.get1010SkuPrice(cartInfo.getSkuId());
-                    //更新价格
-                    cartInfo.setSkuPrice(skuPrice.getData());
-                    cartInfo.setUpdateTime(new Date());
+    public void updateCartAllItemsPrice(String cartKey) {
+        BoundHashOperations<String, String, String> cartOps =
+                redisTemplate.boundHashOps(cartKey);
 
-                    cartOps.put(cartInfo.getSkuId().toString(),Jsons.toStr(cartInfo));
+        System.out.println("更新价格启动：" + Thread.currentThread());
+        cartOps
+                .values()
+                .stream()
+                .map(str ->
+                        Jsons.toObj(str, CartInfo.class)
+                ).forEach(cartInfo -> {
+                    //1、查出最新价格  15ms
+                    Result<BigDecimal> price = skuDetailFeignClient.get1010SkuPrice(cartInfo.getSkuId());
+                    //2、设置新价格
+                    cartInfo.setSkuPrice(price.getData());
+                    cartInfo.setUpdateTime(new Date());
+                    //3、更新购物车价格  5ms。给购物车存数据之前再做一个校验。
+                    //100%防得住
+                    if(cartOps.hasKey(cartInfo.getSkuId().toString())){
+                        cartOps.put(cartInfo.getSkuId().toString(), Jsons.toStr(cartInfo));
+                    }
+
                 });
+
+        System.out.println("更新价格结束：" + Thread.currentThread());
 
     }
 
@@ -209,7 +221,7 @@ public class CartServiceImpl  implements CartService {
     }
 
     /**
-     * 删除购物车里选中的商品
+     * 删除商品
      * @param skuId
      * @param cartKey
      */

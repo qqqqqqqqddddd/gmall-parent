@@ -10,7 +10,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
         "com.atguigu.gmall.feign.item",
         "com.atguigu.gmall.feign.product",
         "com.atguigu.gmall.feign.search",
-        "com.atguigu.gmall.feign.cart"
+        "com.atguigu.gmall.feign.cart",
+        "com.atguigu.gmall.feign.order"
 })
 @SpringCloudApplication
 public class WebMainApplication {
