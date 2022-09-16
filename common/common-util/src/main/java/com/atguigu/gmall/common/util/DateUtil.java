@@ -27,10 +27,11 @@ public class DateUtil {
      * 格式化日期
      *
      * @param date
+     * @param
      * @return
      */
-    public static String formatDate(Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
+    public static String formatDate(Date date,String pattern) {
+        SimpleDateFormat sdf = new SimpleDateFormat(pattern);
         return sdf.format(date);
 
     }
