@@ -3,8 +3,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -18,6 +16,7 @@ import com.atguigu.gmall.feign.product.SkuDetailFeignClient;
 import com.atguigu.gmall.feign.user.UserFeignClient;
 import com.atguigu.gmall.feign.ware.WareFeignClient;
 import com.atguigu.gmall.model.cart.CartInfo;
+import com.atguigu.gmall.model.enums.ProcessStatus;
 import com.atguigu.gmall.model.user.UserAddress;
 import com.atguigu.gmall.model.vo.order.CartInfoVo;
 import com.atguigu.gmall.model.vo.order.OrderSubmitVo;
@@ -26,8 +25,8 @@ import com.atguigu.gmall.model.vo.user.UserAuthInfo;
 import com.atguigu.gmall.model.vo.order.OrderConfirmDataVo;
 import com.atguigu.gmall.order.biz.OrderBizService;
 import com.atguigu.gmall.order.service.OrderInfoService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.ReactiveStreamOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -53,6 +52,9 @@ public class OrderBizServiceImpl implements OrderBizService {
 
     @Autowired
     OrderInfoService orderInfoService;
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
 
     /**
@@ -220,17 +222,22 @@ public class OrderBizServiceImpl implements OrderBizService {
             //清空购物车中的商品
         cartFeignClient.deleteChecked();
 
-        //45min不支付就要关闭。
-        ScheduledExecutorService pool = Executors.newScheduledThreadPool(10);
-        pool.schedule(()->{
-            closeOrder(orderId);
-        },45,TimeUnit.MINUTES);
+        //1.关单-45min不支付就要关闭。
+//        ScheduledExecutorService pool = Executors.newScheduledThreadPool(10);
+//        pool.schedule(()->{
+//            closeOrder(orderId);
+//        },45,TimeUnit.MINUTES);
+        //2.关单-通过rabbitmq发送消息
 
         return orderId;
     }
 
-    @Scheduled(cron = "0 */5 * * * ?")
-    public void closeOrder(Long orderId){
+    @Override
+    public void closeOrder(Long userId, Long orderId){
+        ProcessStatus closed = ProcessStatus.CLOSED;
+        List<ProcessStatus> expected = Arrays.asList(ProcessStatus.UNPAID,ProcessStatus.FINISHED);
+        //如果是未支付或者已结束才可以关闭订单 CAS
+        orderInfoService.changeOrderStatus(orderId,userId,closed,expected);
 
     }
 }

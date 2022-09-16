@@ -12,6 +12,7 @@
         <module>common-util</module>
         <module>service-util</module>
         <module>feign-client</module>
+        <module>rabbit-util</module>
     </modules>
 
     <packaging>pom</packaging>

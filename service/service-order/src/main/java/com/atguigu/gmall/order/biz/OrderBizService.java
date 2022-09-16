@@ -21,5 +21,5 @@ public interface OrderBizService {
 
     Long submitOrder(OrderSubmitVo submitVo, String tradeNo);
 
-    void closeOrder(Long orderId);
+    void closeOrder(Long userId, Long orderId);
 }
