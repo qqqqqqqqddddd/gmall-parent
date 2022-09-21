@@ -39,7 +39,7 @@ public class PayController {
      * 支付成功页
      *
      */
-    @GetMapping("/success.html")
+    @GetMapping("/paysuccess")
     public  String paySuccessPage(@RequestParam Map<String,String> paramMaps) throws AlipayApiException {
         System.out.println("同步通知,收到的参数:"+paramMaps);
         // 修改订单状态,先验签
@@ -53,12 +53,21 @@ public class PayController {
         return  "redirect:http://gmall.com/pay/success.html";
     }
 
+    /**
+     * 支付成功异步通知
+     * @param map
+     * @return
+     * @throws AlipayApiException
+     */
 
+    @ResponseBody
     @PostMapping("/success/notify")
     public String  successNotify(@RequestParam Map<String,String> map) throws AlipayApiException {
         boolean b = alipayService.rsaCheckV1(map);
         if(b){
             log.info("异步通知抵达。支付成功，验签通过。数据：{}", Jsons.toStr(map));
+            //发送map
+            alipayService.sendPayedMsg(map);
 
         }else {
             return "error";

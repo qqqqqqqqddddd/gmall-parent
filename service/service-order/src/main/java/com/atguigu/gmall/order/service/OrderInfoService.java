@@ -19,4 +19,9 @@ public interface OrderInfoService extends IService<OrderInfo> {
     OrderInfo prepareOrderInfo(OrderSubmitVo submitVo, String tradeNo);
 
     void changeOrderStatus(Long orderId, Long userId, ProcessStatus closed, List<ProcessStatus> expected);
+
+    OrderInfo getOrderInfoByOutTradeNoAndUserId(String outTradeNo, Long userId);
+
+    OrderInfo getOrderInfoByOrderIdAndUserId(Long orderId, Long userId);
+
 }

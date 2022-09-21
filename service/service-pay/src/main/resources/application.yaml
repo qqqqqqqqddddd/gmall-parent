@@ -2,8 +2,12 @@ server:
   port: 13000
 
 spring:
-  autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    username: root
+    password: 123456
+    url: jdbc:mysql://192.168.200.100:3306/gmall_activity?useSSL=false
+    driver-class-name: com.mysql.jdbc.Driver
 
 
 app:
@@ -14,10 +18,8 @@ app:
     gateway-url: https://openapi.alipaydev.com/gateway.do
     sign-type: RSA2
     charset: utf-8
-    return-url: http://gmall.com/api/payment/paysuccess
-    notify-url: http://kxr23y1l2o.51xd.pub/api/payment/success/notify
-
-
+    return-url: http://www.gmall.com/pay/success.html
+    notify-url: http://nll6dj2eo51r.ngrok.xiaomiqiu123.top/api/payment/success/notify
 
 
 

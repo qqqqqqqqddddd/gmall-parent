@@ -1,5 +1,6 @@
 package com.atguigu.gmall.rabbit;
 
+import com.atguigu.gmall.service.RabbitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
@@ -51,5 +52,10 @@ public class AppRabbitConfiguration {
 //        data.setId("aa");
 //        template.convertAndSend("xxx","sss","aa",data);
         return template;
+    }
+
+    @Bean
+    RabbitService rabbitService(){
+        return new RabbitService();
     }
 }

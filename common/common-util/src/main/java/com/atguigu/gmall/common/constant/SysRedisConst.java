@@ -33,4 +33,7 @@ public class SysRedisConst {
 
 
     public static final String MQ_RETRY = "mq:message:";
+
+    public static final String CACHE_SECKILL_GOODS = "seckill:goods:"; //加上日期;
+    public static final String CACHE_SECKILL_GOODS_STOCK = "seckill:goods:stock:";//加上商品id
 }

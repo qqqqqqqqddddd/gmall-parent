@@ -8,6 +8,7 @@ import com.atguigu.gmall.model.enums.ProcessStatus;
 import com.atguigu.gmall.model.order.OrderDetail;
 import com.atguigu.gmall.model.to.mq.OrderMsg;
 import com.atguigu.gmall.order.service.OrderDetailService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.Lists;
 import com.atguigu.gmall.model.activity.CouponInfo;
 
@@ -187,6 +188,36 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
         //幂等修改订单
         orderInfoMapper.updateOrderStatus(orderId,userId,processStatus,orderStatus,expects);
+    }
+
+    /**
+     *根据对外交易号和用户id获取订单信息
+     * @param outTradeNo
+     * @param userId
+     * @return
+     */
+    @Override
+    public OrderInfo getOrderInfoByOutTradeNoAndUserId(String outTradeNo, Long userId) {
+       LambdaQueryWrapper<OrderInfo> wrapper = new LambdaQueryWrapper<OrderInfo>()
+                .eq(OrderInfo::getUserId, userId)
+                .eq(OrderInfo::getOutTradeNo, outTradeNo);
+        OrderInfo info = orderInfoMapper.selectOne(wrapper);
+        return info;
+    }
+
+    /**
+     * 查询订单数据
+     * @param orderId
+     * @param userId
+     * @return
+     */
+    @Override
+    public OrderInfo getOrderInfoByOrderIdAndUserId(Long orderId, Long userId) {
+        LambdaQueryWrapper<OrderInfo> wrapper = new LambdaQueryWrapper<OrderInfo>()
+                .eq(OrderInfo::getUserId, userId)
+                .eq(OrderInfo::getId, orderId);
+        OrderInfo info = orderInfoMapper.selectOne(wrapper);
+        return info;
     }
 }
 

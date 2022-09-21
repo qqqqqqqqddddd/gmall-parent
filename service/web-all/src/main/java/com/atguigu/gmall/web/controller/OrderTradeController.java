@@ -40,5 +40,16 @@ public class OrderTradeController {
     }
 
 
+    /**
+     * 订单列表页
+     * @return
+     */
+    @GetMapping("/myOrder.html")
+    public String myOrderPage(){
+
+        return  "order/myOrder";
+    }
+
+
 
 }

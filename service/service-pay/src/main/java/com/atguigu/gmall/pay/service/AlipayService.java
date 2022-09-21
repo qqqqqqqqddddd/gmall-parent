@@ -10,4 +10,6 @@ public interface AlipayService {
     String getAlipayPageHtml(Long orderId) throws AlipayApiException;
 
     boolean rsaCheckV1(Map<String, String> paramMaps) throws AlipayApiException;
+
+    void sendPayedMsg(Map<String, String> map);
 }

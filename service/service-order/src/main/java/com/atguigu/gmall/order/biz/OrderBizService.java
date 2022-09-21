@@ -2,6 +2,10 @@ package com.atguigu.gmall.order.biz;
 
 import com.atguigu.gmall.model.vo.order.OrderConfirmDataVo;
 import com.atguigu.gmall.model.vo.order.OrderSubmitVo;
+import com.atguigu.gmall.model.vo.order.OrderWareMapVo;
+import com.atguigu.gmall.model.vo.order.WareChildOrderVo;
+
+import java.util.List;
 
 /**
  * 订单业务
@@ -21,5 +25,7 @@ public interface OrderBizService {
 
     Long submitOrder(OrderSubmitVo submitVo, String tradeNo);
 
-    void closeOrder(Long userId, Long orderId);
+    void closeOrder(Long orderId, Long userId);
+
+    List<WareChildOrderVo> orderSplit(OrderWareMapVo vo);
 }
