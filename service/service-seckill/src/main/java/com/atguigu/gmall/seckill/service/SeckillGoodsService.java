@@ -16,4 +16,7 @@ public interface SeckillGoodsService extends IService<SeckillGoods> {
 
     List<SeckillGoods> getCurrentDaySeckillGoodsList();
 
+    SeckillGoods getSeckillGoodDetail(Long skuId);
+
+    void deduceSeckillGoods(Long skuId);
 }

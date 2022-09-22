@@ -104,6 +104,20 @@ public class SeckillGoodsCacheOpsServiceImpl implements SeckillGoodsCacheOpsServ
         goodsCache.clear();
     }
 
+    @Override
+    public SeckillGoods getSeckillGoodsDetail(Long skuId) {
+        //1、先拿本地缓存
+        SeckillGoods goods = goodsCache.get(skuId);
+
+        //2、本地缓存没有
+        if(goods == null){
+            syncLocalAndRedisCache();
+            goods = goodsCache.get(skuId);
+        }
+        return goods;
+    }
+
+
 
     /**
      * 本地与redis同步缓存

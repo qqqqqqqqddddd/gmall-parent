@@ -24,4 +24,5 @@ public interface OrderInfoService extends IService<OrderInfo> {
 
     OrderInfo getOrderInfoByOrderIdAndUserId(Long orderId, Long userId);
 
+    Long submitSeckillOrder(OrderInfo info);
 }

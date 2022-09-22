@@ -16,4 +16,5 @@ public interface SeckillGoodsCacheOpsService {
 
     void clearCache();
 
+    SeckillGoods getSeckillGoodsDetail(Long skuId);
 }

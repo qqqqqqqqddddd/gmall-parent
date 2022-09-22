@@ -16,6 +16,8 @@ import java.util.List;
 public interface SeckillGoodsMapper extends BaseMapper<SeckillGoods> {
 
     List<SeckillGoods> getSeckillGoodsByDate(@Param("date") String date);
+
+    void updateStockCount(@Param("skuId") Long skuId);
 }
 
 

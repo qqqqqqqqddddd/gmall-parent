@@ -36,4 +36,6 @@ public class SysRedisConst {
 
     public static final String CACHE_SECKILL_GOODS = "seckill:goods:"; //加上日期;
     public static final String CACHE_SECKILL_GOODS_STOCK = "seckill:goods:stock:";//加上商品id
+    public static final String SECKILL_CODE = "seckill:code:";//加上秒杀码
+    public static final String SECKILL_ORDER = "seckill:goods:order:";//加上秒杀码
 }
